@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.IOException;
-import java.util.HashMap;
 
 import com.google.gson.Gson;
 
@@ -23,9 +22,11 @@ class WeaponData {
         in.read(buffer);
         in.close();
         String raw = new String(buffer);
-
         Gson gson = new Gson();
         this.weapons = gson.fromJson(raw, Weapon[].class);
+        for(Weapon weapon : this.weapons){
+            weapon.normalize();
+        }
     }
 
     public Weapon getWeapon(String name) {
@@ -117,6 +118,19 @@ class Weapon {
     public void reset(){
         this.last = 0;
         this.recoilTime = 0;
+    }
+
+    public void normalize(){
+        int originX = x[0];
+        int originY = y[0];
+
+        for(int i = 0; i < x.length; i++){
+            x[i] -= originX;
+            y[i] -= originY;
+            x[i] *= this.recoilFactor;
+            y[i] *= this.recoilFactor;
+        }
+        System.out.println("New weapon ready for use: " + name + ", RPS: " + this.fireRate + ", recoil: " + this.recoilFactor);
     }
 
 }

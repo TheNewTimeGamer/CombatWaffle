@@ -17,17 +17,12 @@ import java.awt.event.MouseEvent;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Color;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.image.BufferStrategy;
-
-import java.awt.AlphaComposite;
 
 public class CombatWaffle {
 
@@ -36,12 +31,14 @@ public class CombatWaffle {
     public final Point center = new Point(0,0);
 
     public final WeaponData weaponData;
+    public Weapon currentWeapon;
 
     private volatile boolean firing = false;
     private boolean ads = false;
 
     public CombatWaffle(WeaponData weaponData) {
         this.weaponData = weaponData;
+        this.currentWeapon = weaponData.getWeapon("M249");
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.center.x = screenSize.width/2;
@@ -62,7 +59,7 @@ public class CombatWaffle {
     public BufferedImage getWeaponImage() {
         if(this.weaponImage == null){
             try{
-                this.weaponImage = ImageIO.read(new File("weapon.png"));
+                this.weaponImage = ImageIO.read(new File(currentWeapon.viewmodel));
             }catch(IOException e){
                 e.printStackTrace();
             }
@@ -90,9 +87,9 @@ public class CombatWaffle {
         BufferedImage weaponImage = this.getWeaponImage();
         if(isAds()){
             if(weaponImage != null){
-                int xPos = this.center.x-weaponImage.getWidth()/2;
-                int yPos = this.center.y-weaponImage.getHeight()/2;
-                Point offset = this.weaponData.update("ak47", isFiring());
+                int xPos = this.center.x - this.currentWeapon.crosshairOffset.x;
+                int yPos = this.center.y - this.currentWeapon.crosshairOffset.y;
+                Point offset = this.currentWeapon.getOffset(this.firing);
                 g.drawImage(weaponImage, xPos + offset.x, yPos + offset.y, null);
             }
         }

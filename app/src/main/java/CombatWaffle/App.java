@@ -3,10 +3,23 @@
  */
 package CombatWaffle;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+
+import javax.imageio.ImageIO;
 
 public class App {
     public static void main(String[] args) {
+        //try {
+        //   Converter.convert("m249");
+        //} catch (IOException e) {
+        //    e.printStackTrace();
+        //}
         try{
             WeaponData weaponData = new WeaponData();
             CombatWaffle combatWaffle = new CombatWaffle(weaponData);
@@ -15,4 +28,88 @@ public class App {
             e.printStackTrace();
         }
     }
+}
+
+class Converter {
+
+    private static int prevX = 0;
+    private static int prevY = 0;
+
+    private static int deadX = 334;
+    private static int deadY = 65;
+
+    private static int index = 0;
+    private static int[] xPos;
+    private static int[] yPos;
+
+    public static void convert(String directoryName) throws IOException{
+        File directory = new File(directoryName);
+        if(!directory.isDirectory()){
+            System.err.println("File isn't a directory!");
+            return;
+        }
+        File[] files = directory.listFiles();
+        BufferedImage prevImage = null;
+
+        xPos = new int[files.length];
+        yPos = new int[files.length];
+
+        for(File file : files){
+            BufferedImage image = ImageIO.read(file);
+            if(prevImage == null){
+                prevImage = image;
+                continue;
+            }
+            System.out.print("Processing " + file.getName() + " ");
+            if(scanImage(image, prevImage)){
+                index++;
+            }
+
+            prevImage = image;
+        }
+        System.out.println("Done scanning " + xPos.length + " files.");
+        System.out.println("X: ");
+        System.out.println(Arrays.toString(xPos));
+        System.out.println("Y: ");
+        System.out.println(Arrays.toString(yPos));
+        debugOutput();
+    }
+
+    public static boolean scanImage(BufferedImage image, BufferedImage prevImage){
+        for(int y = 0; y < image.getHeight(); y++){
+            for(int x = 0; x < image.getWidth(); x++){
+                if(image.getRGB(x, y) != prevImage.getRGB(x, y)){
+                    Color color = new Color(image.getRGB(x, y));
+                    if(color.getRed() >= 250 && color.getGreen() < 15 && color.getBlue() < 6){
+                        xPos[index] = x;
+                        yPos[index] = y;
+                        prevX = x;
+                        prevY = y;
+                        System.out.println("Found: " + x + ", " + y + " (" + index + ")");
+                        return true;
+                    }
+                }
+            }
+        }
+        System.out.println("Found nothing!" + " (" + index + ")");
+        return false;
+    }
+
+    public static void debugOutput(){
+        BufferedImage image = new BufferedImage(137, 256, BufferedImage.TYPE_INT_RGB);
+        Graphics g = image.getGraphics();
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, image.getWidth(), image.getHeight());
+        g.setColor(Color.WHITE);
+        for(int i = 0; i < xPos.length; i++){
+            g.fillRect(xPos[i], yPos[i], 1, 1);
+        }
+        g.dispose();
+        try {
+            ImageIO.write(image, "PNG", new File("c:/users/stefa/desktop/test.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
