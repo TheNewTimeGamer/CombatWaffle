@@ -15,19 +15,28 @@ import javax.imageio.ImageIO;
 
 public class App {
     public static void main(String[] args) {
-        //try {
-        //   Converter.convert("m249");
-        //} catch (IOException e) {
-        //    e.printStackTrace();
-        //}
+        //convert();
+        run();
+    }
+
+    public static void run(){
         try{
             WeaponData weaponData = new WeaponData();
             CombatWaffle combatWaffle = new CombatWaffle(weaponData);
             new ScreenDuplicator(new Rectangle(-1920,0,1920,1080), new Rectangle(0,0,1920,1080),combatWaffle);
         }catch(Exception e){
-            e.printStackTrace();
+           e.printStackTrace();
         }
     }
+
+    public static void convert(){
+        try {
+            Converter.convert("m249");
+         } catch (IOException e) {
+             e.printStackTrace();
+         }
+    }
+
 }
 
 class Converter {

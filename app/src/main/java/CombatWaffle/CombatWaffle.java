@@ -38,7 +38,7 @@ public class CombatWaffle {
 
     public CombatWaffle(WeaponData weaponData) {
         this.weaponData = weaponData;
-        this.currentWeapon = weaponData.getWeapon("M249");
+        this.currentWeapon = weaponData.getWeapon("M4A1");
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.center.x = screenSize.width/2;
