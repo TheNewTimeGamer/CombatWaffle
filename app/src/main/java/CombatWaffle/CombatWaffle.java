@@ -3,10 +3,20 @@ package CombatWaffle;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import java.awt.Canvas;
+
+import com.github.kwhat.jnativehook.GlobalScreen;
+import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
+import com.github.kwhat.jnativehook.mouse.NativeMouseInputListener;
+
 import java.io.File;
 import java.io.IOException;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
@@ -14,33 +24,39 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.image.BufferStrategy;
+
+import java.awt.AlphaComposite;
 
 public class CombatWaffle {
-    
-    private final JFrame backgroundFrame;
-    private final WeaponPanel weaponPanel;
 
-    private BufferedImage weaponImage = null;
+    public BufferedImage weaponImage = null;
 
-    public CombatWaffle() {
-        this.weaponPanel = new WeaponPanel(this);
-        this.weaponPanel.setBackground(new Color(0,0,0,0));
+    public final Point center = new Point(0,0);
 
-        this.backgroundFrame = new JFrame();
-        this.backgroundFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.backgroundFrame.setUndecorated(true);
-        this.backgroundFrame.setSize(1020,964);
+    public final WeaponData weaponData;
+
+    private volatile boolean firing = false;
+    private boolean ads = false;
+
+    public CombatWaffle(WeaponData weaponData) {
+        this.weaponData = weaponData;
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int frameX = (screenSize.width-this.backgroundFrame.getWidth())/2 - 64;
-        int frameY = screenSize.height-this.backgroundFrame.getHeight() + 275;
+        this.center.x = screenSize.width/2;
+        this.center.y = screenSize.height/2;
 
-        this.backgroundFrame.setLocation(frameX, frameY);
-        this.backgroundFrame.setBackground(new Color(0,0,0,0));
-        this.backgroundFrame.add(this.weaponPanel);
-        //this.backgroundFrame.setFocusable(false);
-        this.backgroundFrame.setAlwaysOnTop(true);
-        this.backgroundFrame.setVisible(true);
+        try{
+            GlobalScreen.registerNativeHook();
+        }catch(Exception e){
+            System.err.println("There was a problem registering the native hook.");
+			System.err.println(e.getMessage());
+			System.exit(1);
+        }
+
+        GlobalMouseListener globalMouseListener = new GlobalMouseListener(this);
+        GlobalScreen.addNativeMouseListener(globalMouseListener);
     }
 
     public BufferedImage getWeaponImage() {
@@ -54,26 +70,62 @@ public class CombatWaffle {
         return this.weaponImage;
     }
 
+    public boolean isFiring(){
+        return this.firing;
+    }
+
+    public void setFiring(boolean firing){
+        this.firing = firing;
+    }
+
+    public boolean isAds(){
+        return this.ads;
+    }
+
+    public void setAds(boolean ads){
+        this.ads = ads;
+    }
+
+    public void render(Graphics2D g) {
+        BufferedImage weaponImage = this.getWeaponImage();
+        if(isAds()){
+            if(weaponImage != null){
+                int xPos = this.center.x-weaponImage.getWidth()/2;
+                int yPos = this.center.y-weaponImage.getHeight()/2;
+                Point offset = this.weaponData.update("ak47", isFiring());
+                g.drawImage(weaponImage, xPos + offset.x, yPos + offset.y, null);
+            }
+        }
+    }
 }
 
-class WeaponPanel extends JPanel {
+class GlobalMouseListener implements NativeMouseInputListener {
 
-    public final CombatWaffle instance;
+    private final CombatWaffle combatWaffle;
 
-    public WeaponPanel(CombatWaffle instance){
-        this.instance = instance;
+    public GlobalMouseListener(CombatWaffle combatWaffle){
+        this.combatWaffle = combatWaffle;
     }
 
     @Override
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        BufferedImage weaponImage = this.instance.getWeaponImage();
-        if(weaponImage != null){
-            g.drawImage(weaponImage, 0, 0, this.getWidth(), this.getHeight(), null);
-        }else{
-            g.setColor(Color.RED);
-            g.fillRect(0, 0, this.getWidth(), this.getHeight());
+	public void nativeMousePressed(NativeMouseEvent e) {
+        if(e.getButton() == NativeMouseEvent.BUTTON1){
+            this.combatWaffle.setFiring(true);
         }
-    }
+        if(e.getButton() == NativeMouseEvent.BUTTON2){
+            this.combatWaffle.setAds(true);
+        }
+	}
+
+    @Override
+	public void nativeMouseReleased(NativeMouseEvent e) {
+		if(e.getButton() == NativeMouseEvent.BUTTON1){
+            this.combatWaffle.setFiring(false);
+        }
+        if(e.getButton() == NativeMouseEvent.BUTTON2){
+            this.combatWaffle.setAds(false);
+        }
+	}
+
 
 }

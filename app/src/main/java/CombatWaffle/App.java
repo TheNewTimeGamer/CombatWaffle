@@ -3,8 +3,16 @@
  */
 package CombatWaffle;
 
+import java.awt.Rectangle;
+
 public class App {
     public static void main(String[] args) {
-        new CombatWaffle();
+        try{
+            WeaponData weaponData = new WeaponData();
+            CombatWaffle combatWaffle = new CombatWaffle(weaponData);
+            new ScreenDuplicator(new Rectangle(-1920,0,1920,1080), new Rectangle(0,0,1920,1080),combatWaffle);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
 }

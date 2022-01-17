@@ -41,6 +41,7 @@ public class Optic extends Canvas implements Runnable {
         this.screenDimensions = Toolkit.getDefaultToolkit().getScreenSize();
         this.frame = new JFrame();
         this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.frame.addWindowListener(new WindowClosingEvent());
         this.frame.setSize(this.screenDimensions.width/40, this.screenDimensions.width/40);
         this.frame.setLocationRelativeTo(null);
         this.frame.add(this);
@@ -118,7 +119,7 @@ public class Optic extends Canvas implements Runnable {
 
     public void run() {
         long last = 0;
-        while(true){
+        while(WindowClosingEvent.running){
             Point p = null;
             try{
                 p = this.getMousePosition();
