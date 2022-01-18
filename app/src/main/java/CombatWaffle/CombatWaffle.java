@@ -28,6 +28,7 @@ import java.awt.Font;
 
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.image.BufferedImage;
 
 public class CombatWaffle {
 
@@ -71,14 +72,13 @@ public class CombatWaffle {
     }
 
     public BufferedImage getWeaponImage() {
-        if(this.weaponImage == null){
-            try{
-                this.weaponImage = ImageIO.read(new File(currentWeapon.viewmodel));
-            }catch(IOException e){
-                e.printStackTrace();
-            }
-        }
-        return this.weaponImage;
+        BufferedImage weaponImage = null;
+        try{
+            weaponImage = ImageIO.read(new File(currentWeapon.viewmodel));
+        }catch(IOException e){
+            e.printStackTrace();
+        }        
+        return weaponImage;
     }
 
     public boolean isFiring(){
@@ -98,7 +98,9 @@ public class CombatWaffle {
     }
 
     public void render(Graphics2D g) {
-        BufferedImage weaponImage = this.getWeaponImage();
+        if(this.weaponImage == null) {
+            this.weaponImage = this.getWeaponImage();
+        }
         if(isAds()){
             if(weaponImage != null){
                 int xPos = this.center.x - this.currentWeapon.crosshairOffset.x;
@@ -168,6 +170,7 @@ class GlobalKeyListener implements NativeKeyListener {
                     this.combatWaffle.searchQueryColor = Color.GREEN;
                     this.combatWaffle.currentWeapon = weapon;
                     this.combatWaffle.searchQuery = weapon.name;
+                    this.combatWaffle.weaponImage = this.combatWaffle.getWeaponImage();
                 }else{
                     this.combatWaffle.searchQueryColor = Color.RED;
                 }
@@ -185,6 +188,7 @@ class GlobalKeyListener implements NativeKeyListener {
             }
         }else{
             if(e.getKeyCode() == NativeKeyEvent.VC_F12){
+                this.combatWaffle.searchQuery = "";
                 this.combatWaffle.searchQueryColor = Color.WHITE;
                 this.combatWaffle.searching = true;
             }
