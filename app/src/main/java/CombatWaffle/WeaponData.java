@@ -29,6 +29,15 @@ class WeaponData {
         }
     }
 
+    public Weapon find(String query) {
+        for(Weapon weapon : weapons){
+            if(weapon.name.toLowerCase().contains(query.toLowerCase())){
+                return weapon;
+            }
+        }
+        return null;
+    }
+
     public Weapon getWeapon(String name) {
         for(Weapon weapon : weapons){
             if(weapon.name.equals(name)){
