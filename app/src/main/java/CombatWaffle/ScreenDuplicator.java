@@ -9,6 +9,7 @@ import java.awt.Robot;
 import java.awt.image.BufferStrategy;
 import java.awt.Graphics2D;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 class ScreenDuplicator extends Canvas implements Runnable {
@@ -20,7 +21,8 @@ class ScreenDuplicator extends Canvas implements Runnable {
 
     public final Robot robot;
 
-    public Thread captureThread = new Thread(this);
+    public Thread captureThread;
+    public Thread renderThread = new Thread(this);
 
     public CombatWaffle combatWaffle;
 
@@ -41,21 +43,30 @@ class ScreenDuplicator extends Canvas implements Runnable {
         this.frame.add(this);
         this.frame.setVisible(true);
 
+        this.captureThread = new Thread(new Runnable(){
+            public void run(){
+                while(WindowClosingEvent.running){
+                    screen = preformScreenCapture();
+                }
+            }
+        });
         this.captureThread.start();
+        this.renderThread.start();
     }
 
     public BufferedImage preformScreenCapture() {
         return this.robot.createScreenCapture(this.input);
     }
 
+    private BufferedImage screen;
+
     public void run() {
-        while(WindowClosingEvent.running) {
-            BufferedImage capture = this.preformScreenCapture();                        
-            render(capture);
+        while(WindowClosingEvent.running) {               
+            render();
         }
     }
 
-    public void render(BufferedImage capture) {
+    public void render() {
         BufferStrategy bs = getBufferStrategy();
         if(bs == null) {
             createBufferStrategy(3);
@@ -64,7 +75,10 @@ class ScreenDuplicator extends Canvas implements Runnable {
 
         Graphics2D g = (Graphics2D) bs.getDrawGraphics();
         
-        g.drawImage(capture, 0, 0, this.getWidth(), this.getHeight(), null);
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, this.getWidth(), this.getHeight());
+
+        g.drawImage(this.screen, 0, 0, this.getWidth(), this.getHeight(), null);
 
         if(this.combatWaffle != null){
             this.combatWaffle.render(g);

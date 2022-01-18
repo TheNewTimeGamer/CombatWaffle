@@ -5,7 +5,7 @@
         "viewmodel": "ak47.png",
         "crosshairOffset": {
             "x": 465,
-            "y": 16
+            "y": -10
         },
         "standingRecoveryTime": 368.0,
         "crouchingRecoveryTime": 305.257,
